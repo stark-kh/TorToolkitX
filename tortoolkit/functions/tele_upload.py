@@ -452,21 +452,18 @@ async def upload_a_file(
 
 
 def black_list_exts(file):
-    for i in ["!qb"]:
-        if str(file).lower().endswith(i):
-            return True
-
-    return False
+    return any(str(file).lower().endswith(i) for i in ["!qb"])
 
 
 # async def upload_single_file(message, local_file_name, caption_str, from_user, edit_media):
 async def upload_single_file(
     path, message, force_edit, database=None, thumb_image_path=None, user_msg=None
 ):
-    if database is not None:
-        if database.get_cancel_status(message.chat_id, message.id):
-            # add os remove here
-            return None
+    if database is not None and database.get_cancel_status(
+        message.chat_id, message.id
+    ):
+        # add os remove here
+        return None
     if not os.path.exists(path):
         return None
 
@@ -553,9 +550,7 @@ async def upload_single_file(
 
         if ftype == "video" and not force_docs:
             metadata = extractMetadata(createParser(path))
-            duration = 0
-            if metadata.has("duration"):
-                duration = metadata.get("duration").seconds
+            duration = metadata.get("duration").seconds if metadata.has("duration") else 0
             #
             width = 1280
             height = 720
@@ -607,20 +602,11 @@ async def upload_single_file(
                         markup,
                     ),
                 )
-            if thumb is not None:
-                os.remove(thumb)
         elif ftype == "audio" and not force_docs:
             metadata = extractMetadata(createParser(path))
-            duration = 0
-            title = ""
-            artist = ""
-            if metadata.has("duration"):
-                duration = metadata.get("duration").seconds
-            if metadata.has("title"):
-                title = metadata.get("title")
-            if metadata.has("artist"):
-                artist = metadata.get("artist")
-
+            duration = metadata.get("duration").seconds if metadata.has("duration") else 0
+            title = metadata.get("title") if metadata.has("title") else ""
+            artist = metadata.get("artist") if metadata.has("artist") else ""
             thumb = None
             if thumb_image_path is not None and os.path.isfile(thumb_image_path):
                 thumb = thumb_image_path
@@ -662,8 +648,6 @@ async def upload_single_file(
                         markup,
                     ),
                 )
-            if thumb is not None:
-                os.remove(thumb)
         else:
             # if a file, don't upload "thumb"
             # this "diff" is a major derp -_- 😔😭😭
@@ -700,8 +684,8 @@ async def upload_single_file(
                         markup,
                     ),
                 )
-            if thumb is not None:
-                os.remove(thumb)
+        if thumb is not None:
+            os.remove(thumb)
     except Exception as e:
         if str(e).find("cancel") != -1:
             torlog.info("Canceled an upload lol")

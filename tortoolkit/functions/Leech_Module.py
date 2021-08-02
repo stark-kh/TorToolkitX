@@ -114,13 +114,10 @@ async def check_link(msg, rclone=False, is_zip=False, extract=False, prev_msg=No
 
                 if extract:
                     newpath = await handle_ext_zip(dl_path, rmess, omess)
-                    if not newpath is False:
-                        dl_path = newpath
                 else:
                     newpath = await handle_zips(dl_path, is_zip, rmess, not rclone)
-                    if newpath is not False:
-                        dl_path = newpath
-
+                if newpath is not False:
+                    dl_path = newpath
                 # REMOVED HEROKU BLOCK
 
                 if not rclone:
